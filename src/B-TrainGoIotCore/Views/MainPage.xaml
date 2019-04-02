@@ -1,0 +1,54 @@
+﻿<Page
+    x:Class="B_TrainGoIotCore.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:B_TrainGoIotCore"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:mvvm="using:Prism.Windows.Mvvm"
+    mvvm:ViewModelLocator.AutoWireViewModel="True"
+    xmlns:views="using:B_TrainGoIotCore.Views"
+    xmlns:vm="using:B_TrainGoIotCore.ViewModels"
+    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    d:DataContext="{d:DesignInstance vm:MainPageViewModel}"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="3*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+        <!--<views:SpeedMeter Grid.Row="1" Grid.Column="0" 
+                          Minimum="0" Maximum="100" Value="50" TrailBrush="Gray" UnitBrush="Blue" Unit="hoge"></views:SpeedMeter>-->
+
+        <controls:RadialGauge Grid.Row="1" Grid.Column="0" Margin="5"
+                              Value="100" Minimum="0" Maximum="200"
+                              NeedleBrush="Red" NeedleWidth="5" NeedleLength="100"
+                              ScaleBrush="Transparent" ScaleTickWidth="0" TickSpacing="10"
+                              TickLength="30" ValueStringFormat=" " Unit="SPEED"
+                              StepSize="0" TickWidth="5" TickBrush="Gray" TrailBrush="Transparent"
+                              Foreground="Black"></controls:RadialGauge>
+
+        <!--<Border Grid.Row="0" Grid.Column="0" Background="{Binding EmergencyBrush}" Padding="5" Margin="2">
+            <Viewbox>
+                <TextBlock Text="非常停止" Foreground="White"/>
+            </Viewbox>
+        </Border>-->
+        <views:ColorMessageView Text="非常停止" Foreground="White" Background="{Binding EmergencyBrush}"
+                                Margin="5" Padding="3"/>
+
+
+        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
+                Background="White">
+            <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                <TextBlock Text="準備中" TextAlignment="Center" FontSize="50"/>
+                <TextBlock Text="ほげー" TextAlignment="Center" FontSize="30"></TextBlock>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>
