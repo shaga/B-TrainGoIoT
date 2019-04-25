@@ -238,6 +238,8 @@ namespace B_TrainGoIotCore.Models
                 _positionCharacteristic =
                     characteristicsResult.Characteristics.FirstOrDefault(
                         c => c.Uuid.Equals(PositionCharacteristicGuid));
+                await _positionCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
+                    GattClientCharacteristicConfigurationDescriptorValue.Notify);
                 _positionCharacteristic.ValueChanged += OnUpdatedPosition;
             });
         }

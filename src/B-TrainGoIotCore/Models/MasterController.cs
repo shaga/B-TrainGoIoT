@@ -39,8 +39,6 @@ namespace B_TrainGoIotCore.Models
 
         private readonly byte[] _recvBuffer = new byte[5];
 
-        private bool _isEmergency;
-
         #endregion
 
         #region property
@@ -54,6 +52,8 @@ namespace B_TrainGoIotCore.Models
         public EControllerButtons ButtonState { get; private set; }
 
         public EControllerButtons PrevButtons { get; private set; }
+
+        public bool IsEmergency { get; private set; }
 
         #endregion
 
@@ -92,23 +92,39 @@ namespace B_TrainGoIotCore.Models
             }
         }
 
-        public void ReadState()
+        public bool IsButtonDown(EControllerButtons button)
         {
-            if (_device == null) return;
+            return ButtonState.HasFlag(button);
+        }
+
+        public bool IsButtonReleased(EControllerButtons button)
+        {
+            return !ButtonState.HasFlag(button) && PrevButtons.HasFlag(button);
+        }
+
+        public bool ReadState()
+        {
+            if (_device == null) return false;
+
+            var updated = false;
 
             _device.TransferFullDuplex(CmdReadValue, _recvBuffer);
 
             var accel = GetCurrentAccelValue();
             var brake = GetCurrentBrakeValue();
 
-            if (!_isEmergency && brake == 9)
+            UpdateButtonState();
+
+            if (!IsEmergency && brake == 9)
             {
                 AccelValue = 0;
-                _isEmergency = true;
+                IsEmergency = true;
+                updated = true;
             }
-            else if (_isEmergency)
+            else if (IsEmergency)
             {
-                _isEmergency = accel > 0 || brake > 0;
+                IsEmergency = accel > 0 || brake > 0;
+                updated = !IsEmergency;
             }
             else if (AccelValue == 0 && BrakeValue == 0)
             {
@@ -116,31 +132,35 @@ namespace B_TrainGoIotCore.Models
                 if (brake > 0)
                 {
                     BrakeValue = brake;
+                    updated = true;
                 }
                 else if (accel > 0)
                 {
                     AccelValue = accel;
+                    updated = true;
                 }
             }
             else if (BrakeValue > 0)
             {
                 // ブレーキが有効
-                if (brake > 0)
-                {
-                    BrakeValue = brake;
-                }
-                else
-                {
-                    
-                }
+                updated = BrakeValue != brake;
+                BrakeValue = brake;
             }
+            else if (AccelValue > 0)
+            {
+                updated = AccelValue != accel;
+                AccelValue = accel;
+            }
+
+            return updated;
         }
 
         private byte GetCurrentAccelValue()
         {
             var v = (byte)(((~_recvBuffer[3] & 0x0f) << 1) | ((~_recvBuffer[4] & 0x08) >> 3));
 
-            byte accel = 0;
+            Debug.WriteLine($"accel source = {v}");
+            var accel = AccelValue;
 
             switch (v)
             {
@@ -163,7 +183,8 @@ namespace B_TrainGoIotCore.Models
                     accel = 5;
                     break;
                 default:
-                    return AccelValue;
+                    if (IsEmergency) accel = 255;
+                    break;
             }
 
             return accel;
@@ -218,15 +239,19 @@ namespace B_TrainGoIotCore.Models
         {
             PrevButtons = ButtonState;
 
-            if (((~_recvBuffer[3] & 0x80) >> 7) > 0) ButtonState |= EControllerButtons.Select;
+            var buttons = EControllerButtons.None;
 
-            if (((~_recvBuffer[3] & 0x10) >> 4) > 0) ButtonState |= EControllerButtons.Start;
+            if (((~_recvBuffer[3] & 0x80) >> 7) > 0) buttons |= EControllerButtons.Select;
 
-            if (((~_recvBuffer[4] & 0x01) >> 0) > 0) ButtonState |= EControllerButtons.A;
+            if (((~_recvBuffer[3] & 0x10) >> 4) > 0) buttons |= EControllerButtons.Start;
 
-            if (((~_recvBuffer[4] & 0x02) >> 1) > 0) ButtonState |= EControllerButtons.B;
+            if (((~_recvBuffer[4] & 0x01) >> 0) > 0) buttons |= EControllerButtons.A;
 
-            if (((~_recvBuffer[4] & 0x04) >> 2) > 0) ButtonState |= EControllerButtons.C;
+            if (((~_recvBuffer[4] & 0x02) >> 1) > 0) buttons |= EControllerButtons.B;
+
+            if (((~_recvBuffer[4] & 0x04) >> 2) > 0) buttons |= EControllerButtons.C;
+
+            ButtonState = buttons;
 
             return PrevButtons != ButtonState;
         }

@@ -1,50 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-
-<Package
-  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
-  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
-  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
-  IgnorableNamespaces="uap mp">
-
-  <Identity
-    Name="09c8bbdf-58b9-42e0-a5e2-0c0a4d3f0d7d"
-    Publisher="CN=shaga"
-    Version="1.0.0.0" />
-
-  <mp:PhoneIdentity PhoneProductId="09c8bbdf-58b9-42e0-a5e2-0c0a4d3f0d7d" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
-
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
+  <Identity Name="09c8bbdf-58b9-42e0-a5e2-0c0a4d3f0d7d" Publisher="CN=shaga" Version="1.0.0.0" />
+  <mp:PhoneIdentity PhoneProductId="09c8bbdf-58b9-42e0-a5e2-0c0a4d3f0d7d" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>B-TrainGoIotCore</DisplayName>
     <PublisherDisplayName>shaga</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
-
   <Dependencies>
     <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
   </Dependencies>
-
   <Resources>
-    <Resource Language="x-generate"/>
+    <Resource Language="x-generate" />
   </Resources>
-
   <Applications>
-    <Application Id="App"
-      Executable="$targetnametoken$.exe"
-      EntryPoint="B_TrainGoIotCore.App">
-      <uap:VisualElements
-        DisplayName="B-TrainGoIotCore"
-        Square150x150Logo="Assets\Square150x150Logo.png"
-        Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="B-TrainGoIotCore"
-        BackgroundColor="transparent">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="B_TrainGoIotCore.App">
+      <uap:VisualElements DisplayName="B-TrainGoIotCore" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="B-TrainGoIotCore" BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
+        </uap:DefaultTile>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
     </Application>
   </Applications>
-
   <Capabilities>
     <Capability Name="internetClient" />
     <DeviceCapability Name="bluetooth" />
+    <DeviceCapability Name="microphone" />
+    <DeviceCapability Name="bluetooth.genericAttributeProfile">
+      <Device Id="any">
+        <Function Type="serviceId:237D1D00-61AF-4B22-AE78-399533CBA7C8" />
+      </Device>
+    </DeviceCapability>
   </Capabilities>
 </Package>

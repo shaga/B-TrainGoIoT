@@ -95,7 +95,12 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\StateUtil.cs" />
+    <Compile Include="Models\VoiceCommand.cs" />
     <Compile Include="Views\ColorMessageView.cs" />
+    <Compile Include="Views\Converter\BooleanVisibilityConverter.cs" />
+    <Compile Include="Views\Converter\ControlStateVisibilityConverter.cs" />
+    <Compile Include="Views\Converter\PositionBrushConverter.cs" />
     <Compile Include="Views\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -103,6 +108,7 @@
     <Compile Include="Models\MasterController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\MainPageViewModel.cs" />
+    <Compile Include="Views\ManualPanel.cs" />
     <Compile Include="Views\SpeedMeter.cs" />
     <Compile Include="Views\TrainMap.cs" />
   </ItemGroup>
@@ -113,6 +119,7 @@
     <None Include="B-TrainGoIotCore_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Grammar\CommandGrammar.xml" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />

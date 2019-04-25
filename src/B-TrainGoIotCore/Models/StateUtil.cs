@@ -12,9 +12,20 @@ namespace B_TrainGoIotCore.Models
         Initialize,
         Manual,
         AutoDemo,
+        SpeechCommand,
     }
 
-    class StateUtil
+    static class StateUtil
     {
+        public static bool CheckValue(this EControlState value, object parameter)
+        {
+            if (!(parameter is string)) return false;
+
+            var paramValue = EControlState.None;
+
+            if (!Enum.TryParse((string) parameter, out paramValue)) return false;
+
+            return value == paramValue;
+        }
     }
 }
