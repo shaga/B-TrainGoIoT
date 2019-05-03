@@ -110,7 +110,6 @@
     <Compile Include="Views\Converter\ControllerValuePosVisibilityConverter.cs" />
     <Compile Include="Views\Converter\ControlStateVisibilityConverter.cs" />
     <Compile Include="Views\Converter\PositionBrushConverter.cs" />
-    <Compile Include="Views\HandleView.cs" />
     <Compile Include="Views\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
