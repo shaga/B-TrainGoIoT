@@ -18,6 +18,8 @@
         <converter:ControlStateVisibilityConverter x:Key="StateVisibilityConverter"/>
         <converter:PositionBrushConverter x:Key="PositionBrushConverter"/>
         <converter:BooleanVisibilityConverter x:Key="BooleanVisibilityConverter"/>
+        <converter:ControllerValuePosVisibilityConverter x:Key="ControllerValuePosVisibilityConverter"/>
+        <converter:ControllerValueFillConverter x:Key="ControllerValueFillConverter"/>
     </Page.Resources>
     <Grid>
 
@@ -137,6 +139,137 @@
             <views:ColorMessageView Grid.Row="0" Grid.Column="0" 
                                     Text="非常停止" Foreground="White" Background="{Binding EmergencyBrush}"
                                     Margin="5" Padding="3"/>
+
+            <views:ColorMessageView Grid.Row="0" Grid.Column="1"
+                                    Foreground="White"
+                                    Text="{Binding DirectionMessage}"
+                                    Margin="5" Padding="3"/>
+
+            <Grid Margin="5" Grid.Row="1" Grid.Column="1">
+                <Grid.Resources>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="FontSize" Value="40"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="TextAlignment" Value="Center"/>
+                    </Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Orientation" Value="Vertical"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                        <Setter Property="Margin" Value="2"/>
+                    </Style>
+                    <Style TargetType="Border">
+                        <Setter Property="BorderBrush" Value="White"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="Padding" Value="1"/>
+                    </Style>
+                </Grid.Resources>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Row="0" Grid.RowSpan="15" Grid.Column="1" Grid.ColumnSpan="3" BorderThickness="2"/>
+                <Border Grid.Row="0" Grid.Column="1">
+                    <TextBlock Text="非常"/>
+                </Border>
+                <Border Grid.Row="1" Grid.RowSpan="8" Grid.Column="1">
+                    <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="ブ"/>
+                        <TextBlock Text="レ"/>
+                        <TextBlock Text="｜" FontWeight="Bold"/>
+                        <TextBlock Text="キ"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="9" Grid.Column="1">
+                    <TextBlock Text="切"/>
+                </Border>
+                <Border Grid.Row="10" Grid.RowSpan="5" Grid.Column="1">
+                    <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="力"/>
+                        <TextBlock Text="行"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=-9}"/>
+                <Border Grid.Row="1" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=-8}"/>
+                <Border Grid.Row="2" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=-7}"/>
+                <Border Grid.Row="3" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=-6}"/>
+                <Border Grid.Row="4" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=-5}"/>
+                <Border Grid.Row="5" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=-4}"/>
+                <Border Grid.Row="6" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=-3}"/>
+                <Border Grid.Row="7" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=-2}"/>
+                <Border Grid.Row="8" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=-1}"/>
+                <Border Grid.Row="9" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=-0}"/>
+                <Border Grid.Row="10" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=1}"/>
+                <Border Grid.Row="11" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=2}"/>
+                <Border Grid.Row="12" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=3}"/>
+                <Border Grid.Row="13" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=4}"/>
+                <Border Grid.Row="14" Grid.Column="2" Background="{Binding ControllerValue, Converter={StaticResource ControllerValueFillConverter}, ConverterParameter=5}"/>
+                <Border Grid.Row="0" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=-9}"/>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=-8}"/>
+                </Border>
+                <Border Grid.Row="2" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=-7}"/>
+                </Border>
+                <Border Grid.Row="3" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=-6}"/>
+                </Border>
+                <Border Grid.Row="4" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=-5}"/>
+                </Border>
+                <Border Grid.Row="5" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=-4}"/>
+                </Border>
+                <Border Grid.Row="6" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=-3}"/>
+                </Border>
+                <Border Grid.Row="7" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=-2}"/>
+                </Border>
+                <Border Grid.Row="8" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=-1}"/>
+                </Border>
+                <Border Grid.Row="9" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=0}"/>
+                </Border>
+                <Border Grid.Row="10" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=1}"/>
+                </Border>
+                <Border Grid.Row="11" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=2}"/>
+                </Border>
+                <Border Grid.Row="12" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=3}"/>
+                </Border>
+                <Border Grid.Row="13" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=4}"/>
+                </Border>
+                <Border Grid.Row="14" Grid.Column="3">
+                    <TextBlock Text="◁" Visibility="{Binding ControllerValue, Converter={StaticResource ControllerValuePosVisibilityConverter}, ConverterParameter=5}"/>
+                </Border>
+            </Grid>
         </Grid>
     </Grid>
 </Page>

@@ -130,4 +130,13 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style TargetType="views:HandleView">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="views:HandleView">
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
@@ -67,6 +68,8 @@ namespace B_TrainGoIotCore.ViewModels
 
         private string _speechMessage;
 
+        private int _controllerValue;
+
         #endregion
 
         #region property
@@ -100,7 +103,11 @@ namespace B_TrainGoIotCore.ViewModels
         public EDirection Direction
         {
             get => _direction;
-            set => SetProperty(ref _direction, value);
+            set
+            {
+                SetProperty(ref _direction, value);
+                RaisePropertyChanged(nameof(DirectionMessage));
+            }
         }
 
         public int TrainPosition
@@ -127,6 +134,29 @@ namespace B_TrainGoIotCore.ViewModels
             set => SetProperty(ref _speechMessage, value);
         }
 
+        public string DirectionMessage
+        {
+            get
+            {
+                if (_direction == EDirection.Right)
+                {
+                    return "進行方向→";
+                }
+                else if (_direction == EDirection.Left)
+                {
+                    return "←進行方向";
+                }
+
+                return "";
+            }
+        }
+
+        public int ControllerValue
+        {
+            get => _controllerValue;
+            set => SetProperty(ref _controllerValue, value);
+        }
+
         #endregion
 
         #region constructor
@@ -135,6 +165,12 @@ namespace B_TrainGoIotCore.ViewModels
 
         #region method
 
+        #region 状態管理メソッド
+
+        /// <summary>
+        /// 初期化
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> Initialize()
         {
             SetState(EControlState.Initialize);
@@ -182,14 +218,38 @@ namespace B_TrainGoIotCore.ViewModels
             return ConnectBase();
         }
 
-        private void OnPositionUpdatedBTrain(object sender, int e)
+        /// <summary>
+        /// レイアウトベース接続
+        /// </summary>
+        /// <returns></returns>
+        private bool ConnectBase()
         {
-            UpdateTrainPosition(e);
+            SetInitMessage("Bトレインに接続中");
 
-            if (ControlState == EControlState.AutoDemo) SetAutoDemoSpeed();
-            else if (ControlState == EControlState.SpeechCommand) SetSpeechDemoSpeed();
+            try
+            {
+                _bTrain.Connect();
+            }
+            catch (Exception e)
+            {
+                SetInitMessage(e.Message);
+                return false;
+            }
+
+            return true;
         }
 
+
+
+        #endregion
+
+        #region event handler
+
+        /// <summary>
+        /// 接続状態変更イベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="isConnected"></param>
         private void OnChangedConnectionBTrain(object sender, bool isConnected)
         {
             if (isConnected)
@@ -214,93 +274,156 @@ namespace B_TrainGoIotCore.ViewModels
             }
         }
 
-        private async void OnTimerTickReadController(ThreadPoolTimer t)
+        /// <summary>
+        /// 位置更新イベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnPositionUpdatedBTrain(object sender, int e)
+        {
+            UpdateTrainPosition(e);
+
+            if (ControlState == EControlState.AutoDemo) SetAutoDemoSpeed();
+            else if (ControlState == EControlState.SpeechCommand) SetSpeechDemoSpeed();
+        }
+
+        /// <summary>
+        /// コントローラ読み込みタイマーイベント
+        /// </summary>
+        /// <param name="t"></param>
+        private void OnTimerTickReadController(ThreadPoolTimer t)
         {
             _masterController.ReadState();
 
             var buttons = _masterController.ButtonState;
 
-            if (_masterController.IsButtonDown(EControllerButtons.Select))
-            {
-                if (_masterController.IsButtonReleased(EControllerButtons.A))
-                {
-                    // マニュアルモードへ
-                    if (ControlState == EControlState.AutoDemo && !_stoppingDemo)
-                    {
-                        _nextState = EControlState.Manual;
-                        StopDemo();
-                    }
-                    else if (ControlState == EControlState.SpeechCommand)
-                    {
-                        _nextState = EControlState.Manual;
-                        LeaveSpeechDemo();
-                    }
-                }
-                else if (_masterController.IsButtonReleased(EControllerButtons.B))
-                {
-                    // オートデモモードへ
-                    if (ControlState == EControlState.Manual && Speed == 0)
-                    {
-                        StartDemo();
-                    }
-                    else if (ControlState == EControlState.SpeechCommand)
-                    {
-                        _nextState = EControlState.AutoDemo;
-                        LeaveSpeechDemo();
-                    }
-                }
-                else if (_masterController.IsButtonReleased(EControllerButtons.C))
-                {
-                    // 音声コマンドモードへ
-                    if (ControlState == EControlState.Manual && Speed == 0)
-                    {
-                        StartSpeechCommand();
-                    }
-                    else if (ControlState == EControlState.AutoDemo && !_stoppingDemo)
-                    {
-                        _nextState = EControlState.SpeechCommand;
-                        StopDemo();
-                    }
-                }
-            }
-
-            //if (buttons.HasFlag(EControllerButtons.Select) && !buttons.HasFlag(EControllerButtons.Start) &&
-            //    _buttons.HasFlag(EControllerButtons.Start))
-            //{
-            //    if (ControlState == EControlState.AutoDemo && !_stoppingDemo)
-            //    {
-            //        StopDemo();
-            //    }
-            //    else if (ControlState == EControlState.Manual && Speed == 0)
-            //    {
-            //        SetState(EControlState.AutoDemo);
-            //        StartDemo();
-            //    }
-
-
-            //    return;
-            //}
+            if (ChangeState()) return;
 
             if (ControlState == EControlState.Manual) ControlManual();
 
             _buttons = buttons;
         }
 
-        private bool ConnectBase()
+        /// <summary>
+        /// 音声認識コマンド受信イベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void OnReceivedSpeechCommand(object sender, VoiceCommandEventArgs e)
         {
-            SetInitMessage("Bトレインに接続中");
+            if (_runningSpeech) return;
 
-            try
+            _runningSpeech = true;
+
+            await _voiceCommand.Pause();
+
+            SetSpeechMessage("自動運行中");
+
+            switch (TrainPosition)
             {
-                _bTrain.Connect();
+                // 奥中央
+                case 1:
+                    SetSpeed(Direction == EDirection.Left ? (byte)200 : (byte)170);
+                    break;
+                // 奥左
+                case 2:
+                    SetSpeed(Direction == EDirection.Left ? (byte)200 : (byte)170);
+                    break;
+                // 左
+                case 3:
+                    SetSpeed(Direction == EDirection.Left ? (byte)170 : (byte)140);
+                    break;
+                // 手前左
+                case 4:
+                    SetSpeed(Direction == EDirection.Left ? (byte)140 : (byte)120);
+                    break;
+                // 手前中央
+                case 5:
+                    SetSpeed(120);
+                    break;
+                // 手前右
+                case 6:
+                    SetSpeed(Direction == EDirection.Left ? (byte)120 : (byte)140);
+                    break;
+                // 右
+                case 7:
+                    SetSpeed(Direction == EDirection.Left ? (byte)140 : (byte)170);
+                    break;
+                // 奥右
+                case 8:
+                    SetSpeed(Direction == EDirection.Left ? (byte)170 : (byte)200);
+                    break;
+                case 0:
+                    SetSpeed(120);
+                    break;
             }
-            catch (Exception e)
+        }
+
+        #endregion
+
+        #region 操作状態管理
+
+
+        private bool ChangeState()
+        {
+            if (!_masterController.IsButtonDown(EControllerButtons.Select)) return false;
+
+            var ret = false;
+
+            if (_masterController.IsButtonReleased(EControllerButtons.A))
             {
-                SetInitMessage(e.Message);
-                return false;
+                // マニュアルモードへ
+                if (ControlState == EControlState.AutoDemo && !_stoppingDemo)
+                {
+                    _nextState = EControlState.Manual;
+                    StopAutoDemo();
+
+                    ret = true;
+                }
+                else if (ControlState == EControlState.SpeechCommand)
+                {
+                    _nextState = EControlState.Manual;
+                    LeaveSpeechDemo();
+
+                    ret = true;
+                }
+            }
+            else if (_masterController.IsButtonReleased(EControllerButtons.B))
+            {
+                // オートデモモードへ
+                if (ControlState == EControlState.Manual && Speed == 0)
+                {
+                    StartAutoDemo();
+
+                    ret = true;
+                }
+                else if (ControlState == EControlState.SpeechCommand)
+                {
+                    _nextState = EControlState.AutoDemo;
+                    LeaveSpeechDemo();
+
+                    ret = true;
+                }
+            }
+            else if (_masterController.IsButtonReleased(EControllerButtons.C))
+            {
+                // 音声コマンドモードへ
+                if (ControlState == EControlState.Manual && Speed == 0)
+                {
+                    StartSpeechDemo();
+
+                    ret = true;
+                }
+                else if (ControlState == EControlState.AutoDemo && !_stoppingDemo)
+                {
+                    _nextState = EControlState.SpeechCommand;
+                    StopAutoDemo();
+
+                    ret = true;
+                }
             }
 
-            return true;
+            return ret;
         }
 
         private async void LeaveSpeechDemo()
@@ -316,22 +439,45 @@ namespace B_TrainGoIotCore.ViewModels
                 if (_nextState == EControlState.Initialize || _nextState == EControlState.None)
                     _nextState = EControlState.Manual;
 
-                if (_nextState == EControlState.AutoDemo) StartDemo();
+                if (_nextState == EControlState.AutoDemo) StartAutoDemo();
                 else SetState(_nextState);
             }
             else
             {
-                if (_nextState == EControlState.AutoDemo) StartDemo();
+                if (_nextState == EControlState.AutoDemo) StartAutoDemo();
                 else SetState(_nextState);
             }
         }
 
-        private void StartSpeechCommand()
+        private void StartSpeechDemo()
         {
             SetSpeechMessage("「出発進行」の掛け声で発車します。");
             SetState(EControlState.SpeechCommand);
             _voiceCommand.Resume();
         }
+
+        private void StartAutoDemo()
+        {
+            SetState(EControlState.AutoDemo);
+            SetAutoDemoSpeed(true);
+        }
+
+        private async void StopAutoDemo()
+        {
+            if (ControlState != EControlState.AutoDemo) return;
+
+            SetStoppingDemo(true);
+
+            while (_stoppingDemo) await Task.Delay(100);
+
+            if (_nextState == EControlState.Initialize || _nextState == EControlState.None)
+                _nextState = EControlState.Manual;
+
+            if (_nextState == EControlState.SpeechCommand) StartSpeechDemo();
+            else SetState(_nextState);
+        }
+
+        #endregion
 
         private void SetSpeechDemoSpeed()
         {
@@ -378,6 +524,9 @@ namespace B_TrainGoIotCore.ViewModels
                 // 奥右
                 case 8:
                     SetSpeed(Direction == EDirection.Left ? (byte)170 : (byte)200);
+                    break;
+                case 0:
+                    SetSpeed(120);
                     break;
             }
         }
@@ -433,52 +582,45 @@ namespace B_TrainGoIotCore.ViewModels
                 case 8:
                     SetSpeed(Direction == EDirection.Left ? (byte)170 : (byte)200);
                     break;
+                case 0:
+                    SetSpeed(120);
+                    break;
             }
-        }
-
-        private void StartDemo()
-        {
-            SetState(EControlState.AutoDemo);
-            SetAutoDemoSpeed(true);
-        }
-
-        private async void StopDemo()
-        {
-            if (ControlState != EControlState.AutoDemo) return;
-
-            SetStoppingDemo(true);
-
-            while (_stoppingDemo) await Task.Delay(100);
-
-            if (_nextState == EControlState.Initialize || _nextState == EControlState.None)
-                _nextState = EControlState.Manual;
-
-            if (_nextState == EControlState.SpeechCommand) StartSpeechCommand();
-            else SetState(_nextState);
         }
 
         private void ControlManual()
         {
             UpdateEmergency();
 
-            var buttons = _masterController.ButtonState;
-
             var speed = _speedRaw;
 
-            var accel = 0;
+            if (Speed == 0 && _masterController.IsButtonReleased(EControllerButtons.Start))
+            {
+                InvertDirection();
+            }
 
+            _inertiaCounter++;
+            if (_inertiaCounter > 20)
+            {
+                _inertiaCounter = 0;
+                if (speed > 0) speed--;
+
+                if (speed < 100) speed = 0;
+            }
 
             if (_masterController.IsEmergency)
             {
                 // 非常ブレーキ作動
                 speed = 0;
+
+                UpdateControllerValue(-9);
             }
             else if (_masterController.AccelValue > 0)
             {
                 // 非常ブレーキ解除済み
                 if (speed == 0)
                 {
-                    speed = 110;
+                    speed = 100;
                 }
                 else
                 {
@@ -493,6 +635,8 @@ namespace B_TrainGoIotCore.ViewModels
                         _accelCounter = 0;
                         if (speed < 255) speed++;
                     }
+
+                    UpdateControllerValue(_masterController.AccelValue);
                 }
             }
             else if (_masterController.BrakeValue > 0)
@@ -516,75 +660,18 @@ namespace B_TrainGoIotCore.ViewModels
                 {
                     speed = 0;
                 }
+
+                UpdateControllerValue(0 - _masterController.BrakeValue);
             }
             else
             {
-                if (Speed == 0 && _masterController.IsButtonReleased(EControllerButtons.Start))
-                {
-                    InvertDirection();
-                }
-
                 _accelCounter = 0;
                 _brakeCounter = 0;
-                _inertiaCounter++;
 
-                if (_inertiaCounter > 10)
-                {
-                    _inertiaCounter = 0;
-                    if (speed > 0) speed--;
-
-                    if (speed < 100) speed = 0;
-                }
+                UpdateControllerValue(0);
             }
 
             SetSpeed(speed);
-        }
-
-        private async void OnReceivedSpeechCommand(object sender, VoiceCommandEventArgs e)
-        {
-            if (_runningSpeech) return;
-
-            _runningSpeech = true;
-
-            await _voiceCommand.Pause();
-
-            SetSpeechMessage("自動運行中");
-
-            switch (TrainPosition)
-            {
-                // 奥中央
-                case 1:
-                    SetSpeed(Direction == EDirection.Left ? (byte)200 : (byte)170);
-                    break;
-                // 奥左
-                case 2:
-                    SetSpeed(Direction == EDirection.Left ? (byte)200 : (byte)170);
-                    break;
-                // 左
-                case 3:
-                    SetSpeed(Direction == EDirection.Left ? (byte)170 : (byte)140);
-                    break;
-                // 手前左
-                case 4:
-                    SetSpeed(Direction == EDirection.Left ? (byte)140 : (byte)120);
-                    break;
-                // 手前中央
-                case 5:
-                    SetSpeed(120);
-                    break;
-                // 手前右
-                case 6:
-                    SetSpeed(Direction == EDirection.Left ? (byte)120 : (byte)140);
-                    break;
-                // 右
-                case 7:
-                    SetSpeed(Direction == EDirection.Left ? (byte)140 : (byte)170);
-                    break;
-                // 奥右
-                case 8:
-                    SetSpeed(Direction == EDirection.Left ? (byte)170 : (byte)200);
-                    break;
-            }
         }
 
         private async void InvertDirection()
@@ -598,9 +685,10 @@ namespace B_TrainGoIotCore.ViewModels
             if (speed == _speedRaw) return;
             _speedRaw = speed;
 
+            _bTrain.SetSpeed(_direction, speed);
+
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
-                _bTrain.SetSpeed(_direction, speed);
                 Speed = (byte) (speed > 100 ? (speed - 100) : 0);                
             });
         }
@@ -636,6 +724,11 @@ namespace B_TrainGoIotCore.ViewModels
         private async void SetSpeechMessage(string message)
         {
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => SpeechMessage = message);
+        }
+
+        private async void UpdateControllerValue(int value)
+        {
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ControllerValue = value);
         }
 
         #endregion

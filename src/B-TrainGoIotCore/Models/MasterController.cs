@@ -159,7 +159,6 @@ namespace B_TrainGoIotCore.Models
         {
             var v = (byte)(((~_recvBuffer[3] & 0x0f) << 1) | ((~_recvBuffer[4] & 0x08) >> 3));
 
-            Debug.WriteLine($"accel source = {v}");
             var accel = AccelValue;
 
             switch (v)
